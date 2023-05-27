@@ -26,17 +26,33 @@ pipeline {
 
             stage('Build docker image') {
                 steps {
-                    docker_image = docker.build "${IMAGE_NAME}"
+                    script{
+                        docker_image = docker.build "${IMAGE_NAME}"
+                    }
+                    
                 }
             }
 
             stage('Push docker image') {
                 steps {
-                    docker.withRegistry('',REGISTRY_CRED){
+                    script{
+                        docker.withRegistry('',REGISTRY_CRED){
                         docker_image.push("$BUILD_NUMBER")
                         docker_image.push('latest')
                     }
+                    
+                    }
                 }
+            }
+
+            stage('Delete Docker images'){
+                steps{
+                    script{
+                        sh "docker rmi ${IMAGE_NAME}:${IMAGE_TAG}"
+                        sh "docker rmi ${IMAGE_NAME}:latest"
+                    }
+                }
+            
             }
     }
 }
